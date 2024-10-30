@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Bubble Animation with Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000033;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Set up scene, camera, renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Bubble array and creation function
+        const bubbles = [];
+        function createBubble() {
+            const size = Math.random() * 0.1 + 0.05;
+            const geometry = new THREE.SphereGeometry(size, 20, 20);
+            const material = new THREE.MeshBasicMaterial({
+                color: new THREE.Color(Math.random(), Math.random(), 1),
+                transparent: true,
+                opacity: 1
+            });
+            const bubble = new THREE.Mesh(geometry, material);
+            bubble.position.set(Math.random() * 10 - 5, -5, Math.random() * 10 - 5);
+            bubble.velocity = Math.random() * 0.05 + 0.02;
+            bubble.scale.set(1, 1, 1); // Initial scale
+            bubble.lifespan = 10; // Lifetime of the bubble in seconds
+            scene.add(bubble);
+            bubbles.push(bubble);
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            bubbles.forEach((bubble, index) => {
+                bubble.position.y += bubble.velocity;
+                bubble.lifespan -= 0.01; // Decrease lifespan
+
+                // Bubble fades out and shrinks until it disappears
+                bubble.material.opacity = bubble.lifespan / 10;
+                bubble.scale.multiplyScalar(0.99);
+
+                if (bubble.position.y > 5 || bubble.lifespan <= 0) {
+                    bubble.position.y = -5;
+                    bubble.position.x = Math.random() * 10 - 5;
+                    bubble.position.z = Math.random() * 10 - 5;
+                    bubble.lifespan = 10;
+                    bubble.scale.set(1, 1, 1);
+                    bubble.material.opacity = 1;
+                }
+
+                // Bubble interaction
+                if (bubble.scale.x < 1.2 && Math.random() < 0.61) {
+                    bubble.scale.multiplyScalar(1.05); // Grow the bubble on hover
+                } else {
+                    bubble.scale.multiplyScalar(0.95); // Shrink the bubble back to normal
+                }
+            });
+            renderer.render(scene, camera);
+        }
+
+        // Initialize and start
+        camera.position.z = 5;
+        for (let i = 0; i < 100; i++) {
+            createBubble();
+        }
+        animate();
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
